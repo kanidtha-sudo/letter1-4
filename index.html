@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมโยงเส้นหาคำตอบ</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeef8 0%, #f0f8ff 100%);
+            margin: 0;
+            padding: 15px;
+            min-height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.2);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #d8a7ca;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #8b7d8b;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .game-area {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            gap: 200px;
+            margin-bottom: 20px;
+        }
+
+        .column {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: fit-content;
+        }
+
+        .item {
+            background: linear-gradient(135deg, #f8d7da 0%, #e2c2d0 100%);
+            color: #6b4c57;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(248, 215, 218, 0.4);
+            position: relative;
+            user-select: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+        }
+
+        .item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(248, 215, 218, 0.6);
+        }
+
+        .item.selected {
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(248, 215, 218, 0.7);
+            background: linear-gradient(135deg, #ffc1cc 0%, #ffb3d1 100%);
+        }
+
+        .item.correct {
+            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .number {
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .text {
+            font-size: 14px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .column {
+            z-index: 2;
+            position: relative;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #f8d7da 0%, #e2c2d0 100%);
+            color: #6b4c57;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(248, 215, 218, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(248, 215, 218, 0.6);
+            background: linear-gradient(135deg, #ffc1cc 0%, #ffb3d1 100%);
+        }
+
+        .message {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 25px;
+            color: #d8a7ca;
+        }
+
+        .message.success {
+            color: #81c784;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸 เกมจับคู่การใช้ภาษาในการร่างหนังสือ</h1>
+        <p class="subtitle">คลิกที่คำฝั่งซ้าย แล้วคลิกคำสุภาพที่มีความหมายเหมือนกันฝั่งขวา</p>
+        
+        <div class="game-area" id="gameArea">
+            <canvas id="canvas"></canvas>
+            
+            <div class="column" id="leftColumn">
+                <div class="item" data-id="1" data-answer="ฎ">
+                    <div class="number">1.</div>
+                    <div class="text">ใคร</div>
+                </div>
+                <div class="item" data-id="2" data-answer="ง">
+                    <div class="number">2.</div>
+                    <div class="text">เดี๋ยวนี้</div>
+                </div>
+                <div class="item" data-id="3" data-answer="ต">
+                    <div class="number">3.</div>
+                    <div class="text">ไม่ดี</div>
+                </div>
+                <div class="item" data-id="4" data-answer="ถ">
+                    <div class="number">4.</div>
+                    <div class="text">เสร็จแล้ว</div>
+                </div>
+                <div class="item" data-id="5" data-answer="ฑ">
+                    <div class="number">5.</div>
+                    <div class="text">ไม่ได้ทำเลย</div>
+                </div>
+                <div class="item" data-id="6" data-answer="ท">
+                    <div class="number">6.</div>
+                    <div class="text">ที่ไหน</div>
+                </div>
+                <div class="item" data-id="7" data-answer="ด">
+                    <div class="number">7.</div>
+                    <div class="text">แบบไหน</div>
+                </div>
+                <div class="item" data-id="8" data-answer="ณ">
+                    <div class="number">8.</div>
+                    <div class="text">ไม่ได้</div>
+                </div>
+                <div class="item" data-id="9" data-answer="ฒ">
+                    <div class="number">9.</div>
+                    <div class="text">เรื่องนั้น</div>
+                </div>
+                <div class="item" data-id="10" data-answer="ช">
+                    <div class="number">10.</div>
+                    <div class="text">เมื่อไร</div>
+                </div>
+                <div class="item" data-id="11" data-answer="ซ">
+                    <div class="number">11.</div>
+                    <div class="text">ไม่ใช่</div>
+                </div>
+                <div class="item" data-id="12" data-answer="ข">
+                    <div class="number">12.</div>
+                    <div class="text">ทำไม</div>
+                </div>
+                <div class="item" data-id="13" data-answer="ธ">
+                    <div class="number">13.</div>
+                    <div class="text">เหมือนกัน</div>
+                </div>
+                <div class="item" data-id="14" data-answer="จ">
+                    <div class="number">14.</div>
+                    <div class="text">อะไร</div>
+                </div>
+                <div class="item" data-id="15" data-answer="ค">
+                    <div class="number">15.</div>
+                    <div class="text">ช่วย</div>
+                </div>
+                <div class="item" data-id="16" data-answer="ฉ">
+                    <div class="number">16.</div>
+                    <div class="text">ต้องการ</div>
+                </div>
+                <div class="item" data-id="17" data-answer="ฌ">
+                    <div class="number">17.</div>
+                    <div class="text">ในเรื่องนี้</div>
+                </div>
+                <div class="item" data-id="18" data-answer="ฐ">
+                    <div class="number">18.</div>
+                    <div class="text">ขอเชิญมา</div>
+                </div>
+                <div class="item" data-id="19" data-answer="ก">
+                    <div class="number">19.</div>
+                    <div class="text">อย่างไร</div>
+                </div>
+                <div class="item" data-id="20" data-answer="ฏ">
+                    <div class="number">20.</div>
+                    <div class="text">ได้ไหม</div>
+                </div>
+            </div>
+            
+            <div class="column" id="rightColumn">
+                <div class="item" data-id="ก">
+                    <div class="number">ก.</div>
+                    <div class="text">เช่นใด ประการใด</div>
+                </div>
+                <div class="item" data-id="ข">
+                    <div class="number">ข.</div>
+                    <div class="text">เพราะอะไร เหตุใด</div>
+                </div>
+                <div class="item" data-id="ค">
+                    <div class="number">ค.</div>
+                    <div class="text">อนุเคราะห์</div>
+                </div>
+                <div class="item" data-id="ง">
+                    <div class="number">ง.</div>
+                    <div class="text">ขณะนี้</div>
+                </div>
+                <div class="item" data-id="จ">
+                    <div class="number">จ.</div>
+                    <div class="text">สิ่งใด อันใด</div>
+                </div>
+                <div class="item" data-id="ฉ">
+                    <div class="number">ฉ.</div>
+                    <div class="text">มีความประสงค์</div>
+                </div>
+                <div class="item" data-id="ช">
+                    <div class="number">ช.</div>
+                    <div class="text">เมื่อใด</div>
+                </div>
+                <div class="item" data-id="ซ">
+                    <div class="number">ซ.</div>
+                    <div class="text">มิใช่</div>
+                </div>
+                <div class="item" data-id="ฌ">
+                    <div class="number">ฌ.</div>
+                    <div class="text">ในกรณีนี้</div>
+                </div>
+                <div class="item" data-id="ฎ">
+                    <div class="number">ฎ.</div>
+                    <div class="text">ผู้ใด</div>
+                </div>
+                <div class="item" data-id="ฏ">
+                    <div class="number">ฏ.</div>
+                    <div class="text">ได้หรือไม่</div>
+                </div>
+                <div class="item" data-id="ฐ">
+                    <div class="number">ฐ.</div>
+                    <div class="text">ขอเชิญไป</div>
+                </div>
+                <div class="item" data-id="ฑ">
+                    <div class="number">ฑ.</div>
+                    <div class="text">ยังไม่ได้ดำเนินการแต่อย่างใด</div>
+                </div>
+                <div class="item" data-id="ฒ">
+                    <div class="number">ฒ.</div>
+                    <div class="text">เรื่องดังกล่าว</div>
+                </div>
+                <div class="item" data-id="ณ">
+                    <div class="number">ณ.</div>
+                    <div class="text">มิได้</div>
+                </div>
+                <div class="item" data-id="ด">
+                    <div class="number">ด.</div>
+                    <div class="text">แบบใด</div>
+                </div>
+                <div class="item" data-id="ต">
+                    <div class="number">ต.</div>
+                    <div class="text">ไม่สมควร</div>
+                </div>
+                <div class="item" data-id="ถ">
+                    <div class="number">ถ.</div>
+                    <div class="text">เรียบร้อย</div>
+                </div>
+                <div class="item" data-id="ท">
+                    <div class="number">ท.</div>
+                    <div class="text">ที่ใด</div>
+                </div>
+                <div class="item" data-id="ธ">
+                    <div class="number">ธ.</div>
+                    <div class="text">เช่นเดียวกัน</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button onclick="checkAnswers()">ตรวจคำตอบ</button>
+            <button onclick="resetGame()">เริ่มใหม่</button>
+        </div>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const gameArea = document.getElementById('gameArea');
+        
+        let selectedLeft = null;
+        let connections = [];
+        const colors = ['#ffb3ba', '#ffdfba', '#ffffba', '#baffc9', '#bae1ff', '#e6baff', '#ffc9de', '#c9baff', '#baffe6', '#ffcab3', '#b3d9ff', '#d9b3ff', '#b3ffb3', '#ffb3d9', '#d9ffb3', '#b3b3ff', '#ffb3ff', '#b3ffff', '#ffffb3', '#ffb3b3'];
+        let colorIndex = 0;
+
+        function resizeCanvas() {
+            canvas.width = gameArea.offsetWidth;
+            canvas.height = gameArea.offsetHeight;
+            drawLines();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        document.querySelectorAll('.item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (this.classList.contains('correct')) return;
+
+                const isLeft = this.parentElement.id === 'leftColumn';
+                
+                if (isLeft) {
+                    document.querySelectorAll('#leftColumn .item').forEach(i => i.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedLeft = this;
+                } else {
+                    if (selectedLeft) {
+                        const leftId = selectedLeft.dataset.id;
+                        const rightId = this.dataset.id;
+                        
+                        connections = connections.filter(c => c.left !== leftId);
+                        
+                        connections.push({
+                            left: leftId,
+                            right: rightId,
+                            color: colors[colorIndex % colors.length]
+                        });
+                        colorIndex++;
+                        
+                        selectedLeft.classList.remove('selected');
+                        selectedLeft = null;
+                        
+                        drawLines();
+                    }
+                }
+            });
+        });
+
+        function drawLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            connections.forEach(conn => {
+                const leftItem = document.querySelector(`#leftColumn [data-id="${conn.left}"]`);
+                const rightItem = document.querySelector(`#rightColumn [data-id="${conn.right}"]`);
+                
+                if (leftItem && rightItem) {
+                    const leftRect = leftItem.getBoundingClientRect();
+                    const rightRect = rightItem.getBoundingClientRect();
+                    const gameRect = gameArea.getBoundingClientRect();
+                    
+                    const x1 = leftRect.right - gameRect.left;
+                    const y1 = leftRect.top - gameRect.top + leftRect.height / 2;
+                    const x2 = rightRect.left - gameRect.left;
+                    const y2 = rightRect.top - gameRect.top + rightRect.height / 2;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.bezierCurveTo(
+                        x1 + 50, y1,
+                        x2 - 50, y2,
+                        x2, y2
+                    );
+                    ctx.strokeStyle = conn.color;
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function checkAnswers() {
+            const message = document.getElementById('message');
+            let correct = 0;
+            let total = 0;
+
+            document.querySelectorAll('#leftColumn .item').forEach(item => {
+                const leftId = item.dataset.id;
+                const correctAnswer = item.dataset.answer;
+                const connection = connections.find(c => c.left === leftId);
+                
+                total++;
+                
+                if (connection && connection.right === correctAnswer) {
+                    correct++;
+                    item.classList.add('correct');
+                    const rightItem = document.querySelector(`#rightColumn [data-id="${correctAnswer}"]`);
+                    rightItem.classList.add('correct');
+                }
+            });
+
+            if (correct === total) {
+                message.textContent = '🎉 ยินดีด้วย! คุณตอบถูกทั้งหมด!';
+                message.className = 'message success';
+            } else {
+                message.textContent = `คุณตอบถูก ${correct} จาก ${total} ข้อ ลองใหม่อีกครั้ง!`;
+                message.className = 'message';
+            }
+        }
+
+        function resetGame() {
+            connections = [];
+            colorIndex = 0;
+            selectedLeft = null;
+            
+            document.querySelectorAll('.item').forEach(item => {
+                item.classList.remove('selected', 'correct');
+            });
+            
+            document.getElementById('message').textContent = '';
+            drawLines();
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99593660e7ef4b65',t:'MTc2MTY0MTcwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
